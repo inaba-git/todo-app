@@ -2,6 +2,12 @@
 
 React で作成したシンプルな ToDo 管理 Web アプリです。タスクの追加・完了・削除に加え、期限日と優先度の設定ができ、データはブラウザの localStorage に保存されるため、ブラウザを閉じても消えません。
 
+## デモ
+
+公開URL: https://coruscating-bombolone-43927f.netlify.app
+
+GitHubリポジトリ: https://github.com/inaba-git/todo-app
+
 ## 主な機能
 
 - タスクの追加 / 完了(チェック) / 削除(空のタスク名は追加不可)
