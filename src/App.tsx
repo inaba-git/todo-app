@@ -37,7 +37,11 @@ export default function App() {
   const [theme, toggleTheme] = useTheme()
   const [view, setView] = useLocalStorage<ViewMode>('todo-app.view', 'list')
   const [sort, setSort] = useLocalStorage<SortKey>('todo-app.sort', 'created')
-  const [statsOpen, setStatsOpen] = useLocalStorage('todo-app.statsOpen', true)
+  // 統計・検索絞り込みの開閉は保存して、次回も同じ状態にする(初期状態は折りたたみ)。
+  // 統計は旧キー 'todo-app.statsOpen' に初期値 true が保存されているため、新しい初期値が
+  // 既存の訪問者にも効くようにキーを変えた(以降に開閉した状態は新しいキーに保存される)。
+  const [statsOpen, setStatsOpen] = useLocalStorage('todo-app.statsOpen.v2', false)
+  const [filtersOpen, setFiltersOpen] = useLocalStorage('todo-app.filtersOpen', false)
   const [filters, setFilters] = useState(INITIAL_FILTERS)
   const [showCompleted, setShowCompleted] = useState(true)
 
@@ -137,6 +141,8 @@ export default function App() {
         sort={sort}
         onSortChange={setSort}
         showSort={view === 'list'}
+        open={filtersOpen}
+        onToggle={() => setFiltersOpen((v) => !v)}
       />
 
       {view === 'calendar' ? (

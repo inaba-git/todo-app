@@ -1,7 +1,7 @@
 import { CATEGORIES, PRIORITIES, SORT_OPTIONS } from '../constants.ts'
 import type { Filters, SortKey } from '../types.ts'
 
-interface FilterBarProps {
+interface FilterFieldsProps {
   filters: Filters
   onChange: (filters: Filters) => void
   sort: SortKey
@@ -9,16 +9,20 @@ interface FilterBarProps {
   showSort: boolean
 }
 
-// 検索・絞り込み(両表示共通)と並び替え(リスト表示のみ)
-export default function FilterBar({
+// 検索語・優先度・カテゴリのどれかで絞り込み中か
+function hasActiveFilters(filters: Filters): boolean {
+  return filters.search !== '' || filters.priority !== 'all' || filters.category !== 'all'
+}
+
+// 検索・絞り込み(両表示共通)と並び替え(リスト表示のみ)の入力欄
+function FilterFields({
   filters,
   onChange,
   sort,
   onSortChange,
   showSort,
-}: FilterBarProps) {
-  const isFiltered =
-    filters.search !== '' || filters.priority !== 'all' || filters.category !== 'all'
+}: FilterFieldsProps) {
+  const isFiltered = hasActiveFilters(filters)
 
   return (
     <div className="filter-bar">
@@ -73,5 +77,26 @@ export default function FilterBar({
         </button>
       )}
     </div>
+  )
+}
+
+interface FilterBarProps extends FilterFieldsProps {
+  open: boolean
+  onToggle: () => void
+}
+
+// 折りたたみ式の「検索・絞り込み」エリア。閉じている間は見出しだけを表示する
+export default function FilterBar({ open, onToggle, ...fieldsProps }: FilterBarProps) {
+  const isFiltered = hasActiveFilters(fieldsProps.filters)
+
+  return (
+    <section className="filter-panel">
+      <button type="button" className="filter-toggle" onClick={onToggle} aria-expanded={open}>
+        <span>{open ? '▾' : '▸'} 🔍 検索・絞り込み</span>
+        {/* 閉じている間も、条件が効いていることが分かるようにする */}
+        {!open && isFiltered && <span className="filter-summary">絞り込み中</span>}
+      </button>
+      {open && <FilterFields {...fieldsProps} />}
+    </section>
   )
 }

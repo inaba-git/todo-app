@@ -679,6 +679,12 @@ button.day:hover {
   min-width: 0;
 }
 
+/* 折りたたみカードの中に入るときは、カードの余白に合わせる */
+.filter-panel .filter-bar {
+  padding: 0 16px 16px;
+  margin-bottom: 0;
+}
+
 /* ---- 編集 ---- */
 .task-title {
   cursor: pointer;
@@ -730,14 +736,16 @@ button.day:hover {
 }
 
 /* ---- 統計 ---- */
-.stats {
+.stats,
+.filter-panel {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 10px;
   margin-bottom: 20px;
 }
 
-.stats-toggle {
+.stats-toggle,
+.filter-toggle {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -752,10 +760,16 @@ button.day:hover {
   cursor: pointer;
 }
 
-.stats-summary {
+.stats-summary,
+.filter-summary {
   color: var(--muted);
   font-size: 0.8rem;
   font-weight: 400;
+}
+
+.filter-summary {
+  color: var(--primary);
+  font-weight: 600;
 }
 
 .danger {
