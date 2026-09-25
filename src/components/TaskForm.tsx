@@ -1,20 +1,24 @@
 import { useState } from 'react'
-import { DEFAULT_CATEGORY, DEFAULT_PRIORITY } from '../constants.js'
-import TaskFields from './TaskFields.jsx'
-import MemoField from './MemoField.jsx'
+import type { FormEvent } from 'react'
+import { DEFAULT_CATEGORY, DEFAULT_PRIORITY } from '../constants.ts'
+import TaskFields from './TaskFields.tsx'
+import MemoField from './MemoField.tsx'
+import type { NewTaskFields } from '../types.ts'
 
-const INITIAL_FIELDS = {
+type FormFields = Omit<NewTaskFields, 'title'>
+
+const INITIAL_FIELDS: FormFields = {
   dueDate: '',
   priority: DEFAULT_PRIORITY,
   category: DEFAULT_CATEGORY,
   memo: '',
 }
 
-export default function TaskForm({ onAdd }) {
+export default function TaskForm({ onAdd }: { onAdd: (fields: NewTaskFields) => void }) {
   const [title, setTitle] = useState('')
-  const [fields, setFields] = useState(INITIAL_FIELDS)
+  const [fields, setFields] = useState<FormFields>(INITIAL_FIELDS)
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const trimmed = title.trim()
     if (!trimmed) return

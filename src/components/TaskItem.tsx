@@ -1,14 +1,26 @@
 import { useState } from 'react'
-import { formatDate, todayString } from '../dateUtils.js'
-import { CATEGORY_LABELS, PRIORITY_LABELS } from '../constants.js'
-import { subtaskProgress } from '../taskUtils.js'
-import TaskFields from './TaskFields.jsx'
-import SubtaskEditor from './SubtaskEditor.jsx'
-import MemoField from './MemoField.jsx'
+import type { FormEvent } from 'react'
+import { formatDate, todayString } from '../dateUtils.ts'
+import { CATEGORY_LABELS, PRIORITY_LABELS } from '../constants.ts'
+import { subtaskProgress } from '../taskUtils.ts'
+import TaskFields from './TaskFields.tsx'
+import SubtaskEditor from './SubtaskEditor.tsx'
+import MemoField from './MemoField.tsx'
+import type { Task, TaskHandlers } from '../types.ts'
 
-export default function TaskItem({ task, onToggle, onDelete, onUpdate }) {
-  const [editing, setEditing] = useState(false)
-  const [draft, setDraft] = useState(null)
+// 編集中の下書き。「保存」を押すまで保存データには反映しない
+type EditDraft = Pick<
+  Task,
+  'title' | 'dueDate' | 'priority' | 'category' | 'memo' | 'subtasks'
+>
+
+interface TaskItemProps extends TaskHandlers {
+  task: Task
+}
+
+export default function TaskItem({ task, onToggle, onDelete, onUpdate }: TaskItemProps) {
+  // draft がある間が編集モード
+  const [draft, setDraft] = useState<EditDraft | null>(null)
   const [showSubtasks, setShowSubtasks] = useState(false)
   const [showMemo, setShowMemo] = useState(false)
 
@@ -21,22 +33,22 @@ export default function TaskItem({ task, onToggle, onDelete, onUpdate }) {
       memo: task.memo,
       subtasks: task.subtasks,
     })
-    setEditing(true)
   }
 
-  const cancelEdit = () => setEditing(false)
+  const cancelEdit = () => setDraft(null)
 
-  const saveEdit = (e) => {
+  const saveEdit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    if (!draft) return
     const title = draft.title.trim()
     if (!title) return
     onUpdate(task.id, { ...draft, title, memo: draft.memo.trim() })
-    setEditing(false)
+    setDraft(null)
   }
 
   const classes = `task-item priority-${task.priority} ${task.completed ? 'completed' : ''}`
 
-  if (editing) {
+  if (draft) {
     return (
       <li className={`${classes} editing`}>
         <form
@@ -54,7 +66,7 @@ export default function TaskItem({ task, onToggle, onDelete, onUpdate }) {
           />
           <MemoField value={draft.memo} onChange={(memo) => setDraft({ ...draft, memo })} />
           <div className="form-row">
-            <TaskFields values={draft} onChange={(v) => setDraft({ ...draft, ...v })} />
+            <TaskFields values={draft} onChange={setDraft} />
             <div className="edit-actions">
               <button type="button" className="cancel-button" onClick={cancelEdit}>
                 キャンセル

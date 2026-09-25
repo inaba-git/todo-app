@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
-import { useLocalStorage } from './useLocalStorage.js'
-import { useTheme } from './useTheme.js'
+import { useLocalStorage } from './useLocalStorage.ts'
+import { useTheme } from './useTheme.ts'
 import {
   computeCompletionHistory,
   computeStats,
@@ -8,21 +8,31 @@ import {
   hasEstimatedCompletion,
   normalizeTask,
   sortTasks,
-} from './taskUtils.js'
-import { todayString } from './dateUtils.js'
-import Stats from './components/Stats.jsx'
-import TaskForm from './components/TaskForm.jsx'
-import TaskList from './components/TaskList.jsx'
-import Calendar from './components/Calendar.jsx'
-import FilterBar from './components/FilterBar.jsx'
+} from './taskUtils.ts'
+import { todayString } from './dateUtils.ts'
+import Stats from './components/Stats.tsx'
+import TaskForm from './components/TaskForm.tsx'
+import TaskList from './components/TaskList.tsx'
+import Calendar from './components/Calendar.tsx'
+import FilterBar from './components/FilterBar.tsx'
+import type {
+  Filters,
+  NewTaskFields,
+  SortKey,
+  StoredTask,
+  Task,
+  TaskChanges,
+  TaskHandlers,
+  ViewMode,
+} from './types.ts'
 
-const INITIAL_FILTERS = { search: '', priority: 'all', category: 'all' }
+const INITIAL_FILTERS: Filters = { search: '', priority: 'all', category: 'all' }
 
 export default function App() {
-  const [storedTasks, setTasks] = useLocalStorage('todo-app.tasks', [])
+  const [storedTasks, setTasks] = useLocalStorage<StoredTask[]>('todo-app.tasks', [])
   const [theme, toggleTheme] = useTheme()
-  const [view, setView] = useLocalStorage('todo-app.view', 'list')
-  const [sort, setSort] = useLocalStorage('todo-app.sort', 'created')
+  const [view, setView] = useLocalStorage<ViewMode>('todo-app.view', 'list')
+  const [sort, setSort] = useLocalStorage<SortKey>('todo-app.sort', 'created')
   const [statsOpen, setStatsOpen] = useLocalStorage('todo-app.statsOpen', true)
   const [filters, setFilters] = useState(INITIAL_FILTERS)
   const [showCompleted, setShowCompleted] = useState(true)
@@ -36,25 +46,23 @@ export default function App() {
   const history = computeCompletionHistory(tasks, today)
   const estimatedCount = storedTasks.filter(hasEstimatedCompletion).length
 
-  const addTask = (fields) => {
-    setTasks((prev) => [
-      ...prev,
-      {
-        id: crypto.randomUUID(),
-        ...fields,
-        subtasks: [],
-        completed: false,
-        completedAt: null,
-        createdAt: Date.now(),
-      },
-    ])
+  const addTask = (fields: NewTaskFields) => {
+    const task: Task = {
+      id: crypto.randomUUID(),
+      ...fields,
+      subtasks: [],
+      completed: false,
+      completedAt: null,
+      createdAt: Date.now(),
+    }
+    setTasks((prev) => [...prev, task])
   }
 
-  const updateTask = (id, changes) => {
+  const updateTask = (id: string, changes: TaskChanges) => {
     setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...changes } : t)))
   }
 
-  const toggleTask = (id) => {
+  const toggleTask = (id: string) => {
     // 完了にした瞬間の時刻を記録し、未完了に戻したら消す(振り返りグラフ用)
     setTasks((prev) =>
       prev.map((t) =>
@@ -65,7 +73,7 @@ export default function App() {
     )
   }
 
-  const deleteTask = (id) => {
+  const deleteTask = (id: string) => {
     setTasks((prev) => prev.filter((t) => t.id !== id))
   }
 
@@ -85,7 +93,7 @@ export default function App() {
   )
   const totalCompleted = tasks.filter((t) => t.completed).length
 
-  const handlers = { onToggle: toggleTask, onDelete: deleteTask, onUpdate: updateTask }
+  const handlers: TaskHandlers = { onToggle: toggleTask, onDelete: deleteTask, onUpdate: updateTask }
 
   return (
     <main className="app">

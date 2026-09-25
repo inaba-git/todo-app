@@ -1,5 +1,19 @@
+export interface BarChartItem {
+  key: string
+  label: string
+  sublabel: string
+  count: number
+  /** 今日・直近の区間など、強調表示する棒 */
+  current: boolean
+}
+
+interface BarChartProps {
+  title: string
+  items: BarChartItem[]
+}
+
 // CSS だけの縦棒グラフ。棒の高さは、表示中の最大値に対する割合
-export default function BarChart({ title, items }) {
+export default function BarChart({ title, items }: BarChartProps) {
   const total = items.reduce((sum, item) => sum + item.count, 0)
   const max = Math.max(...items.map((item) => item.count), 1)
 

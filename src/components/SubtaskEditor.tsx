@@ -1,8 +1,15 @@
 import { useState } from 'react'
+import type { KeyboardEvent } from 'react'
+import type { Subtask } from '../types.ts'
+
+interface SubtaskEditorProps {
+  subtasks: Subtask[]
+  onChange: (subtasks: Subtask[]) => void
+}
 
 // サブタスクの追加・完了・名前変更・削除。変更のたびに新しい配列を onChange で返す。
 // (親が「即保存」するか「保存ボタンまで下書きとして保持」するかは呼び出し側で決める)
-export default function SubtaskEditor({ subtasks, onChange }) {
+export default function SubtaskEditor({ subtasks, onChange }: SubtaskEditorProps) {
   const [newTitle, setNewTitle] = useState('')
 
   const add = () => {
@@ -12,18 +19,20 @@ export default function SubtaskEditor({ subtasks, onChange }) {
     setNewTitle('')
   }
 
-  const update = (id, changes) =>
+  const update = (id: string, changes: Partial<Subtask>) =>
     onChange(subtasks.map((s) => (s.id === id ? { ...s, ...changes } : s)))
 
-  const remove = (id) => onChange(subtasks.filter((s) => s.id !== id))
+  const remove = (id: string) => onChange(subtasks.filter((s) => s.id !== id))
 
   // Enter で親の編集フォームが送信されないようにする
-  const onEnter = (action) => (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault()
-      action(e)
+  const onEnter =
+    (action: (e: KeyboardEvent<HTMLInputElement>) => void) =>
+    (e: KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter') {
+        e.preventDefault()
+        action(e)
+      }
     }
-  }
 
   return (
     <div className="subtasks">

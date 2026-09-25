@@ -1,18 +1,24 @@
 import { useMemo, useState } from 'react'
-import { formatDate, toDateString, todayString } from '../dateUtils.js'
-import { CATEGORY_LABELS, PRIORITY_ORDER } from '../constants.js'
-import TaskList from './TaskList.jsx'
+import { formatDate, toDateString, todayString } from '../dateUtils.ts'
+import { CATEGORY_LABELS, PRIORITY_ORDER } from '../constants.ts'
+import TaskList from './TaskList.tsx'
+import type { Task, TaskHandlers } from '../types.ts'
 
 const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土']
 const MAX_CHIPS = 2
 
 // 同じ日の中では「未完了 → 優先度の高い順」に並べる
-function sortForDay(a, b) {
+function sortForDay(a: Task, b: Task): number {
   if (a.completed !== b.completed) return a.completed ? 1 : -1
   return PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority]
 }
 
-export default function Calendar({ tasks, isFiltered, onToggle, onDelete, onUpdate }) {
+interface CalendarProps extends TaskHandlers {
+  tasks: Task[]
+  isFiltered: boolean
+}
+
+export default function Calendar({ tasks, isFiltered, onToggle, onDelete, onUpdate }: CalendarProps) {
   const today = todayString()
   const [year, month] = today.split('-').map(Number)
   const [view, setView] = useState({ year, monthIndex: month - 1 })
@@ -20,7 +26,7 @@ export default function Calendar({ tasks, isFiltered, onToggle, onDelete, onUpda
 
   // 期限日ごとにタスクをまとめる
   const tasksByDate = useMemo(() => {
-    const map = {}
+    const map: Record<string, Task[]> = {}
     for (const task of tasks) {
       if (!task.dueDate) continue
       ;(map[task.dueDate] ||= []).push(task)
@@ -33,12 +39,12 @@ export default function Calendar({ tasks, isFiltered, onToggle, onDelete, onUpda
 
   const firstWeekday = new Date(view.year, view.monthIndex, 1).getDay()
   const daysInMonth = new Date(view.year, view.monthIndex + 1, 0).getDate()
-  const cells = [
+  const cells: (number | null)[] = [
     ...Array(firstWeekday).fill(null),
     ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
   ]
 
-  const moveMonth = (delta) => {
+  const moveMonth = (delta: number) => {
     setView(({ year, monthIndex }) => {
       const d = new Date(year, monthIndex + delta, 1)
       return { year: d.getFullYear(), monthIndex: d.getMonth() }

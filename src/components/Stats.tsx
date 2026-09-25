@@ -1,10 +1,19 @@
 import { useState } from 'react'
-import { CATEGORIES, PRIORITIES } from '../constants.js'
-import { shortDate, weekdayLabel } from '../dateUtils.js'
-import BarChart from './BarChart.jsx'
+import { CATEGORIES, PRIORITIES } from '../constants.ts'
+import { shortDate, weekdayLabel } from '../dateUtils.ts'
+import BarChart from './BarChart.tsx'
+import type { BarChartItem } from './BarChart.tsx'
+import type { CompletionHistory, TaskStats } from '../types.ts'
 
 // ラベル + 横棒 + 件数 の1行。棒の長さは全タスク数に対する割合
-function BarRow({ label, count, total, colorClass }) {
+interface BarRowProps {
+  label: string
+  count: number
+  total: number
+  colorClass: string
+}
+
+function BarRow({ label, count, total, colorClass }: BarRowProps) {
   const percent = total > 0 ? (count / total) * 100 : 0
   return (
     <li className="bar-row">
@@ -17,7 +26,7 @@ function BarRow({ label, count, total, colorClass }) {
   )
 }
 
-function Overview({ stats }) {
+function Overview({ stats }: { stats: TaskStats }) {
   const { total, completed, priority, category, overdue, dueThisWeek } = stats
   const percent = total > 0 ? Math.round((completed / total) * 100) : 0
 
@@ -92,8 +101,14 @@ function Overview({ stats }) {
   )
 }
 
-function Review({ history, estimatedCount }) {
-  const dayItems = history.days.map((d, i) => ({
+function Review({
+  history,
+  estimatedCount,
+}: {
+  history: CompletionHistory
+  estimatedCount: number
+}) {
+  const dayItems: BarChartItem[] = history.days.map((d, i) => ({
     key: d.date,
     label: shortDate(d.date),
     sublabel: i === history.days.length - 1 ? '今日' : `(${weekdayLabel(d.date)})`,
@@ -101,7 +116,7 @@ function Review({ history, estimatedCount }) {
     current: i === history.days.length - 1,
   }))
 
-  const weekItems = history.weeks.map((w, i) => {
+  const weekItems: BarChartItem[] = history.weeks.map((w, i) => {
     const weeksAgo = history.weeks.length - 1 - i
     return {
       key: w.start,
@@ -125,8 +140,17 @@ function Review({ history, estimatedCount }) {
   )
 }
 
-export default function Stats({ stats, history, estimatedCount, open, onToggle }) {
-  const [tab, setTab] = useState('overview')
+interface StatsProps {
+  stats: TaskStats
+  history: CompletionHistory
+  /** 完了日時が未記録で、追加日で代用している完了済みタスクの件数 */
+  estimatedCount: number
+  open: boolean
+  onToggle: () => void
+}
+
+export default function Stats({ stats, history, estimatedCount, open, onToggle }: StatsProps) {
+  const [tab, setTab] = useState<'overview' | 'review'>('overview')
   const { total, completed, overdue } = stats
   const percent = total > 0 ? Math.round((completed / total) * 100) : 0
 

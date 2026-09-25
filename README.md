@@ -1,6 +1,6 @@
 # ToDoリスト
 
-React で作成したシンプルな ToDo 管理 Web アプリです。タスクの追加・完了・削除に加え、期限日と優先度の設定ができ、データはブラウザの localStorage に保存されるため、ブラウザを閉じても消えません。
+React + TypeScript で作成したシンプルな ToDo 管理 Web アプリです。タスクの追加・完了・削除に加え、期限日と優先度の設定ができ、データはブラウザの localStorage に保存されるため、ブラウザを閉じても消えません。
 
 ## デモ
 
@@ -32,6 +32,7 @@ GitHubリポジトリ: https://github.com/inaba-git/todo-app
 ## 使用技術
 
 - [React](https://react.dev/) 19
+- [TypeScript](https://www.typescriptlang.org/) 7(`strict` モード)
 - [Vite](https://vite.dev/) 7
 - プレーン CSS(ライブラリ不使用)
 - localStorage(Web Storage API)
@@ -48,23 +49,25 @@ npm run dev
 その他のコマンド:
 
 ```bash
-npm run build     # 本番用ビルド
+npm run build     # 型チェック(tsc)+ 本番用ビルド
+npm run typecheck # 型チェックのみ
 npm run preview   # ビルド結果の確認
 ```
 
 ## 工夫した点
 
 - **localStorage 用のカスタムフック**(`useLocalStorage`)を作成し、状態の変更を自動で保存。保存データが壊れていたり、ストレージが使えない環境でもアプリが落ちないようにしています。
-- **並び替えは比較関数の組み合わせ**(`taskUtils.js` の `sortTasks`): 「期限日が近い順」は期限 → 優先度 → 追加順、「優先度が高い順」は優先度 → 期限 → 追加順の順で比較し、同順位でも並びが安定します。未完了・完了済みの両セクションに同じ並び順が適用されます。
+- **並び替えは比較関数の組み合わせ**(`taskUtils.ts` の `sortTasks`): 「期限日が近い順」は期限 → 優先度 → 追加順、「優先度が高い順」は優先度 → 期限 → 追加順の順で比較し、同順位でも並びが安定します。未完了・完了済みの両セクションに同じ並び順が適用されます。
 - **期限の強調表示**: 期限切れは赤、今日が期限のものは橙で表示。日付判定はタイムゾーンのずれを避けるためローカル日付で行っています。
+- **型定義は `types.ts` に集約**: `Task` / `Subtask` / `Priority` / `Category` などをここで定義し、コンポーネントの props や関数の引数・戻り値にも型を付けています。localStorage の古い保存データ(カテゴリ・サブタスク・メモ・完了日時が未設定)は `StoredTask` として別の型で表し、`normalizeTask` で `Task` に補完してから使うので、画面側のコードは常に完全な `Task` だけを扱えます。
 - **コンポーネント分割**(`TaskForm` / `TaskList` / `TaskItem`)で役割を明確にし、読みやすく保守しやすい構成にしています。
-- **カレンダーは外部ライブラリを使わず自前実装**(`Calendar.jsx`)。期限日ごとにタスクを集約して描画し、日付処理は `dateUtils.js` に共通化しています。狭い画面ではタスク名の代わりに色付きの点で表示します。
+- **カレンダーは外部ライブラリを使わず自前実装**(`Calendar.tsx`)。期限日ごとにタスクを集約して描画し、日付処理は `dateUtils.ts` に共通化しています。狭い画面ではタスク名の代わりに色付きの点で表示します。
 - **優先度とカテゴリの見た目を分離**: 優先度は「左の帯+赤・橙・緑のバッジ」、カテゴリは「青・紫・水色・灰色の枠付きバッジ」にして、色が混ざらないようにしています。カレンダーでは小さな頭文字マーク(研・就・授・他)で示します。
 - **既存データとの互換性**: カテゴリ・サブタスク・メモ・完了日時が未設定の古い保存データは、それぞれ「その他」・空のリスト・空文字・追加日時(完了済みの場合)として読み込みます。
-- 追加フォームと編集フォームで入力欄(`TaskFields`)を共通化し、検索・絞り込み・並び替えのロジックは `taskUtils.js` に分離しました。
+- 追加フォームと編集フォームで入力欄(`TaskFields`)を共通化し、検索・絞り込み・並び替えのロジックは `taskUtils.ts` に分離しました。
 - **統計は CSS だけの横棒で表示**(グラフライブラリ不使用)。集計ロジックは `computeStats` に切り出し、絞り込み前の全タスクを対象にすることで、検索中でも全体の進捗が分かります。折りたたむと「完了率・期限切れ件数」の一行サマリーだけになります。
 - **サブタスクは1つのコンポーネント(`SubtaskEditor`)を2か所で再利用**: タスクの「☑ 2/5 完了」ボタンで開く詳細パネルでは変更が即保存され、編集モードの中では「保存」を押すまで下書きとして扱われます。サブタスク名は普通のテキストのように見え、クリックするとその場で編集できます。
-- **振り返りグラフも CSS だけの棒グラフ**(`BarChart.jsx`、ライブラリ不使用)。タスクを完了にした瞬間に `completedAt` を保存し、未完了に戻すと消します。「週」は曜日始まりではなく、今日から数えた7日ごと4区間にして、日別グラフの合計と直近7日の週別グラフが必ず一致するようにしています。完了日時のない過去のタスクは追加日に完了したものとして数え、その旨を画面に注記します。
+- **振り返りグラフも CSS だけの棒グラフ**(`BarChart.tsx`、ライブラリ不使用)。タスクを完了にした瞬間に `completedAt` を保存し、未完了に戻すと消します。「週」は曜日始まりではなく、今日から数えた7日ごと4区間にして、日別グラフの合計と直近7日の週別グラフが必ず一致するようにしています。完了日時のない過去のタスクは追加日に完了したものとして数え、その旨を画面に注記します。
 - **ダークモードは CSS 変数だけで切り替え**: 色はすべて `App.css` 先頭のテーマ変数(`<html data-theme="light|dark">` ごとに定義)に集約し、各コンポーネントの CSS は変数を参照するだけにしています。優先度・カテゴリの色はダーク用に明るくし、統計・カレンダー・フィルターなど全画面が同じ仕組みで切り替わります。`index.html` の小さなスクリプトで描画前にテーマを反映し、読み込み時のちらつきを防いでいます。
 - チェックボックスや削除ボタンに `aria-label` を付け、スクリーンリーダーにも配慮しています。
 
@@ -73,26 +76,31 @@ npm run preview   # ビルド結果の確認
 ```
 ├── index.html
 ├── package.json
-├── vite.config.js
+├── vite.config.ts
+├── tsconfig.json          # tsconfig.app.json(アプリ用)と tsconfig.node.json(Vite 設定用)を参照
+├── tsconfig.app.json
+├── tsconfig.node.json
 ├── README.md
 └── src
-    ├── main.jsx
-    ├── App.jsx
+    ├── main.tsx
+    ├── App.tsx
     ├── App.css
-    ├── constants.js
-    ├── dateUtils.js
-    ├── taskUtils.js
-    ├── useLocalStorage.js
-    ├── useTheme.js
+    ├── types.ts          # Task / Subtask / Priority / Category などの型定義
+    ├── constants.ts
+    ├── dateUtils.ts
+    ├── taskUtils.ts
+    ├── useLocalStorage.ts
+    ├── useTheme.ts
+    ├── vite-env.d.ts
     └── components
-        ├── BarChart.jsx
-        ├── Calendar.jsx
-        ├── FilterBar.jsx
-        ├── MemoField.jsx
-        ├── Stats.jsx
-        ├── SubtaskEditor.jsx
-        ├── TaskFields.jsx
-        ├── TaskForm.jsx
-        ├── TaskList.jsx
-        └── TaskItem.jsx
+        ├── BarChart.tsx
+        ├── Calendar.tsx
+        ├── FilterBar.tsx
+        ├── MemoField.tsx
+        ├── Stats.tsx
+        ├── SubtaskEditor.tsx
+        ├── TaskFields.tsx
+        ├── TaskForm.tsx
+        ├── TaskList.tsx
+        └── TaskItem.tsx
 ```

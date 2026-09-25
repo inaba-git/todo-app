@@ -1,5 +1,10 @@
 // 追加フォームと編集フォームで共通のメモ入力欄(複数行)
-export default function MemoField({ value, onChange }) {
+interface MemoFieldProps {
+  value: string
+  onChange: (value: string) => void
+}
+
+export default function MemoField({ value, onChange }: MemoFieldProps) {
   return (
     <textarea
       className="memo-input"

@@ -1,10 +1,11 @@
 import { useEffect } from 'react'
-import { useLocalStorage } from './useLocalStorage.js'
+import { useLocalStorage } from './useLocalStorage.ts'
+import type { Theme } from './types.ts'
 
 export const THEME_KEY = 'todo-app.theme'
 
 // 初回訪問時は OS の設定(ダーク/ライト)に合わせる
-function systemTheme() {
+function systemTheme(): Theme {
   try {
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
   } catch {
@@ -13,9 +14,9 @@ function systemTheme() {
 }
 
 // 'light' | 'dark' を localStorage に保存し、<html data-theme> に反映する
-export function useTheme() {
-  const [stored, setStored] = useLocalStorage(THEME_KEY, systemTheme())
-  const theme = stored === 'dark' ? 'dark' : 'light'
+export function useTheme(): [Theme, () => void] {
+  const [stored, setStored] = useLocalStorage<Theme>(THEME_KEY, systemTheme())
+  const theme: Theme = stored === 'dark' ? 'dark' : 'light'
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
