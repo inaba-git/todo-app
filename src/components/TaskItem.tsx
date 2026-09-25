@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { formatDate, todayString } from '../dateUtils.ts'
 import { CATEGORY_LABELS, PRIORITY_LABELS } from '../constants.ts'
-import { subtaskProgress } from '../taskUtils.ts'
+import { getDueStatus, subtaskProgress } from '../taskUtils.ts'
 import TaskFields from './TaskFields.tsx'
 import SubtaskEditor from './SubtaskEditor.tsx'
 import MemoField from './MemoField.tsx'
@@ -89,12 +89,7 @@ export default function TaskItem({ task, onToggle, onDelete, onUpdate }: TaskIte
   }
 
   const progress = subtaskProgress(task)
-  const today = todayString()
-  let dueStatus = ''
-  if (task.dueDate && !task.completed) {
-    if (task.dueDate < today) dueStatus = 'overdue'
-    else if (task.dueDate === today) dueStatus = 'today'
-  }
+  const dueStatus = getDueStatus(task, todayString())
 
   return (
     <li className={classes}>

@@ -3,6 +3,7 @@ import { CATEGORIES, PRIORITIES } from '../constants.ts'
 import { shortDate, weekdayLabel } from '../dateUtils.ts'
 import BarChart from './BarChart.tsx'
 import type { BarChartItem } from './BarChart.tsx'
+import { completionPercent } from '../taskUtils.ts'
 import type { CompletionHistory, TaskStats } from '../types.ts'
 
 // ラベル + 横棒 + 件数 の1行。棒の長さは全タスク数に対する割合
@@ -28,7 +29,7 @@ function BarRow({ label, count, total, colorClass }: BarRowProps) {
 
 function Overview({ stats }: { stats: TaskStats }) {
   const { total, completed, priority, category, overdue, dueThisWeek } = stats
-  const percent = total > 0 ? Math.round((completed / total) * 100) : 0
+  const percent = completionPercent(stats)
 
   return (
     <>
@@ -151,8 +152,8 @@ interface StatsProps {
 
 export default function Stats({ stats, history, estimatedCount, open, onToggle }: StatsProps) {
   const [tab, setTab] = useState<'overview' | 'review'>('overview')
-  const { total, completed, overdue } = stats
-  const percent = total > 0 ? Math.round((completed / total) * 100) : 0
+  const { overdue } = stats
+  const percent = completionPercent(stats)
 
   return (
     <section className="stats">

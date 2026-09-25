@@ -4,10 +4,15 @@ import { useTheme } from './useTheme.ts'
 import {
   computeCompletionHistory,
   computeStats,
+  createTask,
+  deleteTaskById,
   filterTasks,
   hasEstimatedCompletion,
   normalizeTask,
+  removeCompleted,
   sortTasks,
+  toggleTaskById,
+  updateTaskById,
 } from './taskUtils.ts'
 import { todayString } from './dateUtils.ts'
 import Stats from './components/Stats.tsx'
@@ -20,7 +25,6 @@ import type {
   NewTaskFields,
   SortKey,
   StoredTask,
-  Task,
   TaskChanges,
   TaskHandlers,
   ViewMode,
@@ -47,39 +51,25 @@ export default function App() {
   const estimatedCount = storedTasks.filter(hasEstimatedCompletion).length
 
   const addTask = (fields: NewTaskFields) => {
-    const task: Task = {
-      id: crypto.randomUUID(),
-      ...fields,
-      subtasks: [],
-      completed: false,
-      completedAt: null,
-      createdAt: Date.now(),
-    }
+    const task = createTask(fields)
     setTasks((prev) => [...prev, task])
   }
 
   const updateTask = (id: string, changes: TaskChanges) => {
-    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...changes } : t)))
+    setTasks((prev) => updateTaskById(prev, id, changes))
   }
 
   const toggleTask = (id: string) => {
-    // 完了にした瞬間の時刻を記録し、未完了に戻したら消す(振り返りグラフ用)
-    setTasks((prev) =>
-      prev.map((t) =>
-        t.id === id
-          ? { ...t, completed: !t.completed, completedAt: t.completed ? null : Date.now() }
-          : t
-      )
-    )
+    setTasks((prev) => toggleTaskById(prev, id))
   }
 
   const deleteTask = (id: string) => {
-    setTasks((prev) => prev.filter((t) => t.id !== id))
+    setTasks((prev) => deleteTaskById(prev, id))
   }
 
   const clearCompleted = () => {
     if (confirm('完了済みのタスクをすべて削除しますか?')) {
-      setTasks((prev) => prev.filter((t) => !t.completed))
+      setTasks(removeCompleted)
     }
   }
 

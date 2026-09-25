@@ -4,10 +4,12 @@ import type {
   Category,
   CompletionHistory,
   Filters,
+  NewTaskFields,
   Option,
   SortKey,
   StoredTask,
   Task,
+  TaskChanges,
   TaskStats,
 } from './types.ts'
 
@@ -41,9 +43,79 @@ export function normalizeTask(task: StoredTask): Task {
   return { ...task, category, subtasks, memo, completedAt }
 }
 
+// 新しいタスクを作る(未完了・サブタスクなし)。id と時刻は引数で差し替えられる(テスト用)
+export function createTask(
+  fields: NewTaskFields,
+  { id = crypto.randomUUID(), now = Date.now() }: { id?: string; now?: number } = {}
+): Task {
+  return {
+    id,
+    ...fields,
+    subtasks: [],
+    completed: false,
+    completedAt: null,
+    createdAt: now,
+  }
+}
+
+// 指定した id のタスクだけを changes で更新した新しい配列を返す(元の配列は変更しない)
+export function updateTaskById(
+  tasks: StoredTask[],
+  id: string,
+  changes: TaskChanges
+): StoredTask[] {
+  return tasks.map((t) => (t.id === id ? { ...t, ...changes } : t))
+}
+
+// 完了 ⇔ 未完了を切り替える。完了にした瞬間の時刻を記録し、未完了に戻したら消す(振り返りグラフ用)
+export function toggleTaskById(
+  tasks: StoredTask[],
+  id: string,
+  now: number = Date.now()
+): StoredTask[] {
+  return tasks.map((t) =>
+    t.id === id ? { ...t, completed: !t.completed, completedAt: t.completed ? null : now } : t
+  )
+}
+
+export function deleteTaskById(tasks: StoredTask[], id: string): StoredTask[] {
+  return tasks.filter((t) => t.id !== id)
+}
+
+// 完了済みのタスクをすべて取り除く
+export function removeCompleted(tasks: StoredTask[]): StoredTask[] {
+  return tasks.filter((t) => !t.completed)
+}
+
 // 完了日時が記録されておらず、追加日時で代用されている完了済みタスクか
 export function hasEstimatedCompletion(storedTask: StoredTask): boolean {
   return storedTask.completed && typeof storedTask.completedAt !== 'number'
+}
+
+type DueTask = Pick<Task, 'dueDate' | 'completed'>
+
+// 期限切れ: 未完了で、期限日が今日より前
+export function isOverdue(task: DueTask, today: string): boolean {
+  return !task.completed && task.dueDate !== '' && task.dueDate < today
+}
+
+// 直近7日が期限: 未完了で、期限日が今日〜6日後(今日を含む7日間)。期限切れは含めない
+export function isDueThisWeek(task: DueTask, today: string): boolean {
+  return (
+    !task.completed &&
+    task.dueDate !== '' &&
+    task.dueDate >= today &&
+    task.dueDate <= addDays(today, 6)
+  )
+}
+
+export type DueStatus = 'overdue' | 'today' | ''
+
+// タスクの期限表示用。期限切れ → 'overdue'、今日が期限 → 'today'、それ以外(完了済み含む)→ ''
+export function getDueStatus(task: DueTask, today: string): DueStatus {
+  if (isOverdue(task, today)) return 'overdue'
+  if (!task.completed && task.dueDate === today) return 'today'
+  return ''
 }
 
 export function subtaskProgress(task: Task): { done: number; total: number; percent: number } {
@@ -101,7 +173,6 @@ function zeroCounts<T extends string>(options: Option<T>[]): Record<T, number> {
 // 統計用の集計。件数は全タスク対象、期限切れ・直近7日は未完了タスクのみ対象。
 // 「直近7日」は今日を含む7日間(今日〜6日後)。期限切れ(今日より前)は含めない。
 export function computeStats(tasks: Task[], today: string): TaskStats {
-  const weekEnd = addDays(today, 6)
   const priority = zeroCounts(PRIORITIES)
   const category = zeroCounts(CATEGORIES)
   let completed = 0
@@ -111,15 +182,17 @@ export function computeStats(tasks: Task[], today: string): TaskStats {
   for (const task of tasks) {
     priority[task.priority] += 1
     category[task.category] += 1
-    if (task.completed) {
-      completed += 1
-    } else if (task.dueDate) {
-      if (task.dueDate < today) overdue += 1
-      else if (task.dueDate <= weekEnd) dueThisWeek += 1
-    }
+    if (task.completed) completed += 1
+    if (isOverdue(task, today)) overdue += 1
+    if (isDueThisWeek(task, today)) dueThisWeek += 1
   }
 
   return { total: tasks.length, completed, priority, category, overdue, dueThisWeek }
+}
+
+// 全体の完了率(%)。四捨五入して整数にし、タスクが 0 件のときは 0
+export function completionPercent({ total, completed }: Pick<TaskStats, 'total' | 'completed'>): number {
+  return total > 0 ? Math.round((completed / total) * 100) : 0
 }
 
 // 振り返りグラフ用: 直近7日の日別と、直近4週間(7日ずつ4区間)の週別の完了数。

@@ -35,6 +35,7 @@ GitHubリポジトリ: https://github.com/inaba-git/todo-app
 - [TypeScript](https://www.typescriptlang.org/) 7(`strict` モード)
 - [Vite](https://vite.dev/) 7
 - プレーン CSS(ライブラリ不使用)
+- [Vitest](https://vitest.dev/) + [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/)(テスト)
 - localStorage(Web Storage API)
 
 ## 使い方
@@ -51,8 +52,25 @@ npm run dev
 ```bash
 npm run build     # 型チェック(tsc)+ 本番用ビルド
 npm run typecheck # 型チェックのみ
+npm run test      # テストを実行(変更を監視して再実行)
+npm run test:run  # テストを 1 回だけ実行
 npm run preview   # ビルド結果の確認
 ```
+
+## テスト
+
+Vitest でロジック部分(関数・フック)を中心にテストしています(画面全体のテストは対象外)。
+
+| ファイル | テスト内容 |
+| --- | --- |
+| `src/taskUtils.test.ts` | タスクの追加・編集・完了切り替え・削除、古い保存データの補完、優先度・カテゴリ・検索での絞り込み、並び替え(追加順・期限順・優先度順)、期限切れ・直近7日の判定、統計と完了率、サブタスクの進捗(例: 2/5 完了)、振り返りグラフの集計 |
+| `src/dateUtils.test.ts` | 日付の加算(月またぎ・年またぎ・閏年)、ローカル日付での「今日」の判定、表示用の書式 |
+| `src/useLocalStorage.test.ts` | localStorage への保存・読み込み(壊れたデータ・保存失敗時の動作、再読み込み後の復元) |
+| `src/useTheme.test.ts` | ダークモードの初期値(OS 設定・保存値)、切り替えと保存 |
+
+- 追加・編集・削除や期限判定のロジックは、テストしやすいよう画面から切り離した純粋関数(`createTask` / `updateTaskById` / `toggleTaskById` / `deleteTaskById` / `isOverdue` / `isDueThisWeek` など)として `taskUtils.ts` に置いています。
+- 「今日」の日付は引数で受け取る作りにして、テストが実行した日に左右されないようにしています。
+- localStorage は jsdom 上で実際に読み書きし、保存の失敗などは `Storage.prototype` をモックして再現しています。
 
 ## 工夫した点
 
@@ -76,7 +94,7 @@ npm run preview   # ビルド結果の確認
 ```
 ├── index.html
 ├── package.json
-├── vite.config.ts
+├── vite.config.ts           # Vite と Vitest の設定
 ├── tsconfig.json          # tsconfig.app.json(アプリ用)と tsconfig.node.json(Vite 設定用)を参照
 ├── tsconfig.app.json
 ├── tsconfig.node.json
@@ -92,6 +110,9 @@ npm run preview   # ビルド結果の確認
     ├── useLocalStorage.ts
     ├── useTheme.ts
     ├── vite-env.d.ts
+    ├── *.test.ts         # テスト(taskUtils / dateUtils / useLocalStorage / useTheme)
+    ├── test
+    │   └── factories.ts  # テスト用のタスク作成ヘルパー
     └── components
         ├── BarChart.tsx
         ├── Calendar.tsx
