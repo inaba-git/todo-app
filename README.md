@@ -102,7 +102,7 @@ Vitest でロジック部分(関数・フック)を中心にテストしてい�
 - 追加・編集・削除や期限判定のロジックは、テストしやすいよう画面から切り離した純粋関数(`createTask` / `updateTaskById` / `toggleTaskById` / `deleteTaskById` / `isOverdue` / `isDueThisWeek` など)として `taskUtils.ts` に置いています。
 - 「今日」の日付は引数で受け取る作りにして、テストが実行した日に左右されないようにしています。
 - localStorage は jsdom 上で実際に読み書きし、保存の失敗などは `Storage.prototype` をモックして再現しています。
-- Supabase へは実際に通信せず、メモリ上の偽物(`src/test/memoryApi.ts`、`src/test/fakeSupabase.ts`)に差し替えてテストしています。RLS など DB 側の動きはテストできないため、`supabase/schema.sql` を実行した実環境で、別のアカウントのタスクが見えないことを確認してください。
+- Supabase へは実際に通信せず、メモリ上の偽物(`src/test/memoryApi.ts`、`src/test/fakeSupabase.ts`)に差し替えてテストしています。RLS はテスト用の偽物では検証できないため、`supabase/schema.sql` を実行した実環境で、2つの異なるアカウントでログインし、互いのタスクが見えないことを確認済みです。
 
 ## 工夫した点
 
