@@ -1248,3 +1248,167 @@ button.day:hover {
     font-size: 0.62rem;
   }
 }
+
+/* ---- ログイン画面・アカウント表示・同期の状態 ---- */
+.auth-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  box-sizing: border-box;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 400px;
+  padding: 28px 24px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px var(--shadow);
+}
+
+.auth-card h1 {
+  margin-bottom: 20px;
+}
+
+.auth-card code {
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: var(--surface-alt);
+  font-size: 0.85em;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.auth-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.auth-input {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.auth-input:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: -1px;
+}
+
+.auth-submit {
+  margin-left: 0;
+  padding: 10px 24px;
+}
+
+.auth-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.auth-error {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: var(--high-bg);
+  color: var(--high);
+  font-size: 0.85rem;
+}
+
+.auth-sent p {
+  margin: 0 0 12px;
+  overflow-wrap: anywhere;
+}
+
+.account-bar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  margin: -12px 0 16px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.account-email {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.logout-button {
+  flex-shrink: 0;
+}
+
+.sync-status {
+  margin: 24px 0;
+  text-align: center;
+  color: var(--muted);
+}
+
+.sync-error {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: var(--high-bg);
+  color: var(--high);
+  font-size: 0.85rem;
+}
+
+.sync-error button {
+  flex-shrink: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.notice {
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  background: var(--card);
+  border: 1px solid var(--primary);
+  border-radius: 10px;
+  font-size: 0.9rem;
+}
+
+.notice p {
+  margin: 0 0 10px;
+}
+
+.notice-sub {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.notice-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.notice-actions .add-button {
+  margin-left: 0;
+  padding: 6px 18px;
+}

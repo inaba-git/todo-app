@@ -15,6 +15,7 @@ import {
   sortTasks,
   subtaskProgress,
   toggleTaskById,
+  toImportableTask,
   updateTaskById,
 } from './taskUtils.ts'
 import { makeTask } from './test/factories.ts'
@@ -186,6 +187,30 @@ describe('古い保存データの補完 (normalizeTask)', () => {
     expect(hasEstimatedCompletion({ ...legacy, completed: true })).toBe(true)
     expect(hasEstimatedCompletion({ ...legacy, completed: true, completedAt: 1 })).toBe(false)
     expect(hasEstimatedCompletion(legacy)).toBe(false)
+  })
+})
+
+describe('端末のタスクの取り込み用の補完 (toImportableTask)', () => {
+  const legacy: StoredTask = {
+    id: 'old',
+    title: '古いタスク',
+    dueDate: '',
+    priority: 'medium',
+    completed: true,
+    createdAt: 1234,
+  }
+
+  it('カテゴリ・サブタスク・メモを補完する', () => {
+    expect(toImportableTask(legacy)).toMatchObject({ category: 'other', subtasks: [], memo: '' })
+  })
+
+  it('完了日時が未記録なら、追加日時で代用せず null のままにする(表示側が従来どおり代用する)', () => {
+    expect(toImportableTask(legacy).completedAt).toBeNull()
+    expect(hasEstimatedCompletion(toImportableTask(legacy))).toBe(true)
+  })
+
+  it('記録されていた完了日時はそのまま使う', () => {
+    expect(toImportableTask({ ...legacy, completedAt: 999 }).completedAt).toBe(999)
   })
 })
 

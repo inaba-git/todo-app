@@ -87,6 +87,15 @@ export function removeCompleted(tasks: StoredTask[]): StoredTask[] {
   return tasks.filter((t) => !t.completed)
 }
 
+// この端末に保存されていた古いタスクを、アカウント(DB)に取り込める形にする。
+// 完了日時は推測で埋めず、未記録なら null のままにする(表示側が従来どおり追加日で代用する)
+export function toImportableTask(task: StoredTask): Task {
+  return {
+    ...normalizeTask(task),
+    completedAt: typeof task.completedAt === 'number' ? task.completedAt : null,
+  }
+}
+
 // 完了日時が記録されておらず、追加日時で代用されている完了済みタスクか
 export function hasEstimatedCompletion(storedTask: StoredTask): boolean {
   return storedTask.completed && typeof storedTask.completedAt !== 'number'

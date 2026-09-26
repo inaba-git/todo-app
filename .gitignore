@@ -1,3 +1,8 @@
 node_modules
 dist
 *.log
+
+# 環境変数(Supabase の接続情報など。.env.example だけをコミットする)
+.env
+.env.*
+!.env.example
